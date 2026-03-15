@@ -153,7 +153,7 @@ def get_numeric_input(prompt, float_type = True):
                 try:
                     return float(input(prompt)) if float_type else int(input(prompt))
                 except ValueError:
-                    print(f"Niepoprawne dane. Spróbuj ponownie.")
+                    print(f"Invalid input. Please enter a valid number.")
 
 def main_menu():
     init_db()  # Upewniamy się, że tabela istnieje
@@ -168,18 +168,19 @@ def main_menu():
 
     while True:
         print("\n--- MANAGER ETF ACWI & OTHERS ---")
-        print("1. Dodaj nowy ETF")
-        print("2. Pokaż raport portfela")
-        print("3. Wyczyść bazę danych")
-        print("0. Wyjdź")
+        print("1. Add new ETF to portfolio") # Dodajemy nowy ETF do portfela (i bazy)
+        print("2. Show wallet report")
+        print("3. Clear wallet (and database)")
+        print("4. Delete ETF by ticker")
+        print("0. Exit")
         
-        choice = input("Wybierz opcję: ")
+        choice = input("Choose an option: ")
 
         if choice == "1":
-            name = input("Nazwa ETF: ")
+            name = input("ETF Name: ")
             ticker = input("Ticker: ")
-            price = get_numeric_input("Cena: ")
-            qty = get_numeric_input("Ilość: ", float_type=False)
+            price = get_numeric_input("Price: ")
+            qty = get_numeric_input("Quantity: ", float_type=False)
            
 
             new_etf = ETF(name, ticker, price, qty)
@@ -192,18 +193,18 @@ def main_menu():
         elif choice == "3":
             clear_db()
             portfolio = Portfolio("Adam") # Resetujemy też obiekt w pamięci
-            print("Portfel wyczyszczony.")
+            print("Wallet cleared.")
 
         elif choice == "4":
-            ticker = input("Podaj ticker ETF do usunięcia: ").upper()
+            ticker = input("Enter ETF ticker to delete: ").upper()
             delete_etf_by_ticker(ticker)
             portfolio.remove_by_ticker(ticker) # Usuwamy też z obiektu w RAM
-            print(f"ETF o tickerze {ticker} został usunięty.")
+            print(f"ETF {ticker} has been deleted.")
         elif choice == "0":
-            print("Nara!")
+            print("Exiting... Goodbye!")
             break
         else:
-            print("Zły wybór, spróbuj jeszcze raz.")
+            print("Invalid choice. Please try again.")
 
 # Odpalenie menu
 if __name__ == "__main__":
