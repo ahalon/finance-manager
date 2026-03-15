@@ -49,6 +49,8 @@ class Portfolio:
             f"BEST PERFORMER: {best.name if best else 'None'}\n"
         )
     
+    def remove_by_ticker(self, ticker):
+        self.__assets = [asset for asset in self.__assets if asset.ticker != ticker]
 
 class GlobalETF(ETF):
     def __init__(self, name, ticker, price, quantity, countries_count):
@@ -58,23 +60,9 @@ class GlobalETF(ETF):
     def __str__(self):
         return f"{super().__str__()} [Global Exposure: {self.countries_count} countries]"
 
-#TEST
-
-# Adam = Portfolio("Adam")
-
-# etf1 = ETF("Vanguard S&P 500", "VOO", 400, 10)
-# etf2 = ETF("iShares Core MSCI EAFE", "IEFA", 70, 20)
-# etf3 = GlobalETF("iShares MSCI World", "IXJ", 100, 15, 50)
-# Adam.add_asset(etf1)
-# Adam.add_asset(etf2)
-# Adam.add_asset(etf3)
-# print(Adam.total_value())
-# print(30*"*")
-# print(f'{etf1} \n{etf2} \n{etf3}')
-# print(30*"+")
-# print(Adam.generate_report())
 
 
+### --- BAZA DANYCH ---
 # 1. Połączenie i stworzenie tabeli (jeśli jej nie ma)
 def init_db():
     conn = sqlite3.connect('moje_inwestycje.db')
@@ -131,25 +119,94 @@ def load_all_etfs():
     conn.close()
     return etfs
 
+def delete_etf_by_ticker(ticker):
+    conn = sqlite3.connect('moje_inwestycje.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM etfs WHERE ticker = ?', (ticker,))
+    conn.commit()
+    conn.close()
+
 # --- TEST ---
-init_db() # Najpierw tworzymy tabelę
+# init_db() # Najpierw tworzymy tabelę
 
-clear_db()
+# clear_db()
 
-# Tworzysz obiekt swojej klasy
-acwi = ETF("iShares ACWI", "SSAC", 350.5, 12)
-sp500 = ETF("Vanguard S&P 500", "VOO", 400, 10)
-
-
-
-# Zapisujesz go do bazy
-save_etf_to_db(acwi)
-save_etf_to_db(sp500)
+# # Tworzysz obiekt swojej klasy
+# acwi = ETF("iShares ACWI", "SSAC", 350.5, 12)
+# sp500 = ETF("Vanguard S&P 500", "VOO", 400, 10)
 
 
-lista_z_bazy = load_all_etfs()
-moje_portfolio = Portfolio("Adam")
-for etf in lista_z_bazy:
-    moje_portfolio.add_asset(etf)
 
-print(str(moje_portfolio.generate_report()))
+# # Zapisujesz go do bazy
+# save_etf_to_db(acwi)
+# save_etf_to_db(sp500)
+
+
+# lista_z_bazy = load_all_etfs()
+# moje_portfolio = Portfolio("Adam")
+# for etf in lista_z_bazy:
+#     moje_portfolio.add_asset(etf)
+
+# print(str(moje_portfolio.generate_report()))
+def get_numeric_input(prompt, float_type = True):
+            while True:
+                try:
+                    return float(input(prompt)) if float_type else int(input(prompt))
+                except ValueError:
+                    print(f"Niepoprawne dane. Spróbuj ponownie.")
+
+def main_menu():
+    init_db()  # Upewniamy się, że tabela istnieje
+    portfolio = Portfolio("Adam")
+    
+    # Ładujemy dane z bazy na starcie programu
+    assets = load_all_etfs()
+    for asset in assets:
+        portfolio.add_asset(asset)
+
+
+
+    while True:
+        print("\n--- MANAGER ETF ACWI & OTHERS ---")
+        print("1. Dodaj nowy ETF")
+        print("2. Pokaż raport portfela")
+        print("3. Wyczyść bazę danych")
+        print("0. Wyjdź")
+        
+        choice = input("Wybierz opcję: ")
+
+        if choice == "1":
+            name = input("Nazwa ETF: ")
+            ticker = input("Ticker: ")
+            price = get_numeric_input("Cena: ")
+            qty = get_numeric_input("Ilość: ", float_type=False)
+           
+
+            new_etf = ETF(name, ticker, price, qty)
+            save_etf_to_db(new_etf)
+            portfolio.add_asset(new_etf) # Dodajemy też do obiektu w RAMie
+            
+        elif choice == "2":
+            print(portfolio.generate_report())
+            
+        elif choice == "3":
+            clear_db()
+            portfolio = Portfolio("Adam") # Resetujemy też obiekt w pamięci
+            print("Portfel wyczyszczony.")
+
+        elif choice == "4":
+            ticker = input("Podaj ticker ETF do usunięcia: ").upper()
+            delete_etf_by_ticker(ticker)
+            portfolio.remove_by_ticker(ticker) # Usuwamy też z obiektu w RAM
+            print(f"ETF o tickerze {ticker} został usunięty.")
+        elif choice == "0":
+            print("Nara!")
+            break
+        else:
+            print("Zły wybór, spróbuj jeszcze raz.")
+
+# Odpalenie menu
+if __name__ == "__main__":
+    main_menu()
+
+
