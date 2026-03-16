@@ -1,4 +1,5 @@
 import sqlite3
+import yfinance as yf
 
 class ETF:
     def __init__(self, name, ticker, price, quantity):
@@ -45,7 +46,7 @@ class Portfolio:
             f"--- PORTFOLIO REPORT: {self.owner} ---\n"
             f"{assets_details}\n"
             f"----------------------------------------\n"
-            f"TOTAL VALUE: {self.total_value()} PLN\n"
+            f"TOTAL VALUE: {self.total_value()}\n"
             f"BEST PERFORMER: {best.name if best else 'None'}\n"
         )
     
@@ -148,6 +149,19 @@ def delete_etf_by_ticker(ticker):
 #     moje_portfolio.add_asset(etf)
 
 # print(str(moje_portfolio.generate_report()))
+
+
+def get_real_price(ticker):
+    print(f"--- Fetching price for {ticker} ---")
+    try:
+        data = yf.Ticker(ticker)
+        price = data.fast_info['lastPrice']
+        return f"{price:.2f}"
+    except Exception as e:
+        print(f"Error fetching price for {ticker}: {e}")
+        return None
+
+
 def get_numeric_input(prompt, float_type = True):
             while True:
                 try:
@@ -177,15 +191,21 @@ def main_menu():
         choice = input("Choose an option: ")
 
         if choice == "1":
-            name = input("ETF Name: ")
-            ticker = input("Ticker: ")
-            price = get_numeric_input("Price: ")
-            qty = get_numeric_input("Quantity: ", float_type=False)
-           
+            name = input("Enter ETF name: ")
+            ticker = input("Enter ETF ticker: ").upper()
 
-            new_etf = ETF(name, ticker, price, qty)
-            save_etf_to_db(new_etf)
-            portfolio.add_asset(new_etf) # Dodajemy też do obiektu w RAMie
+            price = get_real_price(ticker)
+
+            if price is not None:
+                print(f"Current price for {ticker} is {price}")
+                qty = get_numeric_input("Enter quantity: ", float_type=True)
+
+                new_etf = ETF(name, ticker, float(price), qty)
+                save_etf_to_db(new_etf)  # Zapisujemy do bazy
+                portfolio.add_asset(new_etf)  # Dodajemy do obiektu w RAM
+                print(f"Added {name} ({ticker}) to portfolio.")
+            else:
+                print(f"Could not fetch price for {ticker}. ETF not added.")
             
         elif choice == "2":
             print(portfolio.generate_report())
