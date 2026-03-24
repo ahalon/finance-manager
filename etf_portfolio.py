@@ -127,29 +127,6 @@ def delete_etf_by_ticker(ticker):
     conn.commit()
     conn.close()
 
-# --- TEST ---
-# init_db() # Najpierw tworzymy tabelę
-
-# clear_db()
-
-# # Tworzysz obiekt swojej klasy
-# acwi = ETF("iShares ACWI", "SSAC", 350.5, 12)
-# sp500 = ETF("Vanguard S&P 500", "VOO", 400, 10)
-
-
-
-# # Zapisujesz go do bazy
-# save_etf_to_db(acwi)
-# save_etf_to_db(sp500)
-
-
-# lista_z_bazy = load_all_etfs()
-# moje_portfolio = Portfolio("Adam")
-# for etf in lista_z_bazy:
-#     moje_portfolio.add_asset(etf)
-
-# print(str(moje_portfolio.generate_report()))
-
 
 def get_real_price(ticker):
     print(f"--- Fetching price for {ticker} ---")
